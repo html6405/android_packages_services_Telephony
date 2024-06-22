@@ -35,6 +35,8 @@ import com.android.internal.telephony.OperatorInfo;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Add static Utility functions to get information from the CellInfo object.
@@ -136,11 +138,17 @@ public final class CellInfoUtil {
      */
     public static CellInfo convertOperatorInfoToCellInfo(OperatorInfo operatorInfo) {
         String operatorNumeric = operatorInfo.getOperatorNumeric();
+        Pattern p = Pattern.compile("^([0-9]{5,6}).*");
         String mcc = null;
         String mnc = null;
-        if (operatorNumeric != null && operatorNumeric.matches("^[0-9]{5,6}$")) {
-            mcc = operatorNumeric.substring(0, 3);
-            mnc = operatorNumeric.substring(3);
+        if (operatorNumeric != null) {
+            Matcher m = p.matcher(operatorNumeric);
+            if (m.matches()) {
+                mcc = m.group(1).substring(0, 3);
+                mnc = m.group(1).substring(3);
+            } else {
+                Log.e(TAG, "Failed to parse operatorNumeric!");
+            }
         }
         CellIdentityGsm cig = new CellIdentityGsm(
                 Integer.MAX_VALUE /* lac */,
